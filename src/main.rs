@@ -19,8 +19,6 @@ pub fn remove_max_heap(x: &mut Vec<u8>) -> Option<u8> {
         // idx points to root node
 
         // get child nodes
-        // let c1 = x[2 * idx + 1];
-        // let c2 = x[2 * idx + 2];
         let c1 = x.get(2 * idx + 1);
         let c2 = x.get(2 * idx + 2);
 
@@ -51,6 +49,7 @@ pub fn remove_max_heap(x: &mut Vec<u8>) -> Option<u8> {
                 }
                 break;
             }
+            // shouldn't happen, means the tree is corrupt
             (None, Some(_)) => unsafe { std::hint::unreachable_unchecked() },
             (None, None) => break,
         }
