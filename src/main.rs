@@ -30,7 +30,7 @@ pub fn pop_front_max_heap(x: &mut [u8]) -> Option<u8> {
             (Some(&left), Some(&right)) => {
                 let largest_child_idx = if left >= right { 1 } else { 2 };
 
-                let max = root_node.max(left).max(right);
+                let max = *[left, right, root_node].iter().max().unwrap();
                 if root_node != max {
                     // need to swap with largest in that case
                     // and traverse down the tree
@@ -51,9 +51,7 @@ pub fn pop_front_max_heap(x: &mut [u8]) -> Option<u8> {
                 }
                 break;
             }
-            // shouldn't happen, means the tree is corrupt
-            (None, Some(_)) => unsafe { std::hint::unreachable_unchecked() },
-            (None, None) => break,
+            _ => break,
         }
     }
 
@@ -84,6 +82,7 @@ pub fn build_max_heap(x: &mut [u8]) {
     }
 }
 
+// Maybe write heap sort in assembly? for i32 or something maybe.
 pub fn heap_sort(mut x: &mut [u8]) {
     // build into max heap
     build_max_heap(x);
