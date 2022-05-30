@@ -1,13 +1,30 @@
 use std::ptr::swap;
 
-pub fn remove_max_heap(x: &mut Vec<u8>) -> Option<u8> {
+pub fn heap_sort(x: &mut [u8]) {
+    let mut max_heap = build_max_heap(x);
+
+    let mut idx = x.len();
+    while let Some(root) = pop_front_max_heap(&mut max_heap) {
+        idx -= 1;
+        x[idx] = root;
+    }
+}
+
+pub fn pop_front_max_heap(x: &mut Vec<u8>) -> Option<u8> {
     // TODO handle edge cases where it's not perfectly aligned
     // also this could be empty...
 
     let mut idx = 0;
 
-    // TODO fix up...
-    let ret = if x.is_empty() { return None } else { x[0] };
+    if x.is_empty() {
+        return None;
+    }
+
+    if x.len() == 1 {
+        return x.pop();
+    }
+
+    let ret = x[0];
 
     // swap last node and root node
     let last = x.remove(x.len() - 1);
@@ -90,18 +107,20 @@ pub fn build_max_heap(x: &[u8]) -> Vec<u8> {
 fn main() {
     // let chars: Vec<u8> = (0..32).collect();
     // let chars = [1u8, 5, 6, 7, 8, 2, 1, 3, 9, 1];
-    let chars = [1u8, 5, 6, 7, 8, 2, 1];
+    let mut chars = [3, 2, 1, 5, 3, 7, 9, 12, 255, 255, 38, 2, 3, 4, 69];
 
-    let mut bt = build_max_heap(&chars);
+    heap_sort(&mut chars);
 
-    println!("bt before: {:?}", bt);
+    println!("chars: {chars:?}");
 
-    // correct: 1 5 1 7 8 6 2 3
+    // let mut bt = build_max_heap(&chars);
 
-    for _ in 0..3 {
-        println!("{:?}", remove_max_heap(&mut bt));
-        println!("bt: {:?}", bt);
+    // println!("bt before: {:?}\n", bt);
 
-        println!();
-    }
+    // // correct: 1 5 1 7 8 6 2 3
+
+    // while let Some(val) = pop_front_max_heap(&mut bt) {
+    //     println!("popped {val}");
+    //     println!("bt after: {bt:?}\n");
+    // }
 }
