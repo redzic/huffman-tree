@@ -68,7 +68,7 @@ pub fn build_max_heap(x: &mut [u8]) {
                 break;
             }
             let p_node = x[(idx - 1) / 2];
-            // check if parent node is greater than current node
+            // check if parent node is less than current node
             if p_node < c_node {
                 // swap current node with parent node
                 x.swap(idx, (idx - 1) / 2);
@@ -95,8 +95,6 @@ pub fn heap_sort(mut x: &mut [u8]) {
 }
 
 fn main() {
-    // let chars: Vec<u8> = (0..32).collect();
-    // let chars = [1u8, 5, 6, 7, 8, 2, 1, 3, 9, 1];
     let cap = 4096;
 
     let mut buf1 = vec![0u8; cap];
