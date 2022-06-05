@@ -80,20 +80,55 @@ pub fn build_min_heap(x: &mut [u8]) {
     }
 }
 
+// function needed for merging nodes
+
+// merge nodes into new binary tree (complete BT for now)
+pub fn merge_trees(x1: Vec<u8>, x2: Vec<u8>) -> Vec<u8> {
+    // vec![x1[0] + x2[0], x1[0], x2[0], x1[1], x1[2], x2[1], x2[2]]
+
+    assert!(!x1.is_empty() && !x2.is_empty());
+
+    let mut v = vec![];
+
+    v.push(x1[0] + x2[0]);
+
+    let mut idx = 0;
+    let mut tree_width = 1;
+
+    // TODO fix for different lengths of x1 and x2
+    while let (Some(x1s), Some(x2s)) =
+        (x1.get(idx..idx + tree_width), x2.get(idx..idx + tree_width))
+    {
+        // add children nodes
+        v.extend(x1s);
+        v.extend(x2s);
+        idx += tree_width;
+        tree_width *= 2;
+    }
+
+    v
+}
+
 fn main() {
     // sorted frequency map
     // a, b, c, d, e, ... etc
-    let mut freqs = [2, 4, 4, 5, 5];
+    // let mut freqs = [2, 4, 4, 5, 5];
 
-    build_min_heap(&mut freqs);
+    // build_min_heap(&mut freqs);
 
-    let mut y = &mut freqs[..];
-    while let Some(x) = pop_front_min_heap(y) {
-        dbg!(x);
+    // let mut y = &mut freqs[..];
+    // while let Some(x) = pop_front_min_heap(y) {
+    //     dbg!(x);
 
-        let len = y.len();
-        y = &mut y[..len - 1];
-    }
+    //     let len = y.len();
+    //     y = &mut y[..len - 1];
+    // }
 
-    println!("{freqs:?}");
+    // println!("{freqs:?}");
+
+    let x1 = vec![6, 2, 4];
+    let x2 = vec![9, 5, 4];
+
+    let x3 = merge_trees(x1, x2);
+    dbg!(x3);
 }
