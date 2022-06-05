@@ -1,8 +1,4 @@
-use rand::prelude::*;
-
-pub fn pop_front_max_heap(x: &mut [u8]) -> Option<u8> {
-    let mut idx = 0;
-
+pub fn pop_front_min_heap(x: &mut [u8]) -> Option<u8> {
     if x.is_empty() {
         return None;
     }
@@ -17,6 +13,8 @@ pub fn pop_front_max_heap(x: &mut [u8]) -> Option<u8> {
     let last = x[x.len() - 1];
     x[0] = last;
 
+    let mut idx = 0;
+
     loop {
         let root_node = x[idx];
 
@@ -28,25 +26,25 @@ pub fn pop_front_max_heap(x: &mut [u8]) -> Option<u8> {
 
         match (c1, c2) {
             (Some(&left), Some(&right)) => {
-                let largest_child_idx = if left >= right { 1 } else { 2 };
+                let min_child_idx = if left <= right { 1 } else { 2 };
 
-                let max = *[left, right, root_node].iter().max().unwrap();
-                if root_node != max {
+                let min = *[left, right, root_node].iter().min().unwrap();
+                if root_node != min {
                     // need to swap with largest in that case
                     // and traverse down the tree
-                    x.swap(idx, 2 * idx + largest_child_idx);
+                    x.swap(idx, 2 * idx + min_child_idx);
 
                     // adjust index, go to child node that was larger
-                    idx = 2 * idx + largest_child_idx;
+                    idx = 2 * idx + min_child_idx;
                 } else {
                     break;
                 }
             }
             (Some(&left), None) => {
                 // compare last child node with parent node
-                // since this is a max heap, the child node should not be greater than
-                // the parent
-                if left > root_node {
+                // since this is a min heap, the parent node should always be less than
+                // or equal to its children
+                if left < root_node {
                     x.swap(idx, 2 * idx + 1);
                 }
                 break;
@@ -58,8 +56,8 @@ pub fn pop_front_max_heap(x: &mut [u8]) -> Option<u8> {
     Some(ret)
 }
 
-// build max heap in-place
-pub fn build_max_heap(x: &mut [u8]) {
+// build min heap in-place
+pub fn build_min_heap(x: &mut [u8]) {
     for mut idx in 0..x.len() {
         let c_node = x[idx];
 
@@ -67,9 +65,9 @@ pub fn build_max_heap(x: &mut [u8]) {
             if idx == 0 {
                 break;
             }
+            // get value of sparent node
             let p_node = x[(idx - 1) / 2];
-            // check if parent node is less than current node
-            if p_node < c_node {
+            if p_node > c_node {
                 // swap current node with parent node
                 x.swap(idx, (idx - 1) / 2);
                 // set index to parent node
@@ -82,34 +80,20 @@ pub fn build_max_heap(x: &mut [u8]) {
     }
 }
 
-// Maybe write heap sort in assembly? for i32 or something maybe.
-pub fn heap_sort(mut x: &mut [u8]) {
-    // build into max heap
-    build_max_heap(x);
-
-    while let Some(v) = pop_front_max_heap(x) {
-        let len = x.len();
-        x[len - 1] = v;
-        x = &mut x[..len - 1];
-    }
-}
-
 fn main() {
-    let cap = 4096;
+    // sorted frequency map
+    // a, b, c, d, e, ... etc
+    let mut freqs = [2, 4, 4, 5, 5];
 
-    let mut buf1 = vec![0u8; cap];
-    let mut buf2 = vec![0u8; cap];
+    build_min_heap(&mut freqs);
 
-    let mut rng = rand::thread_rng();
-    loop {
-        let len = rng.gen_range(0..cap);
+    let mut y = &mut freqs[..];
+    while let Some(x) = pop_front_min_heap(y) {
+        dbg!(x);
 
-        buf1[..len].fill_with(|| rng.gen());
-        buf2[..len].copy_from_slice(&buf1[..len]);
-
-        heap_sort(&mut buf1[..len]);
-        buf2[..len].sort();
-
-        assert_eq!(buf1[..len], buf2[..len]);
+        let len = y.len();
+        y = &mut y[..len - 1];
     }
+
+    println!("{freqs:?}");
 }
