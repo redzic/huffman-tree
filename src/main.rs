@@ -97,8 +97,8 @@ pub fn merge_trees(x1: Vec<u8>, x2: Vec<u8>) -> Vec<Option<u8>> {
         match (x1.get(idx..idx + tree_width), x2.get(idx..idx + tree_width)) {
             (None, None) => break,
             (l, r) => {
-                let lr = [l, r];
-                for x in lr {
+                for x in [l, r] {
+                    v.reserve(2 * tree_width);
                     if let Some(x) = x {
                         v.extend(x.iter().copied().map(Some));
                     } else {
