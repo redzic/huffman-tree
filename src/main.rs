@@ -83,30 +83,52 @@ pub fn build_min_heap(x: &mut [u8]) {
 // function needed for merging nodes
 
 // merge nodes into new binary tree (complete BT for now)
-pub fn merge_trees(x1: Vec<u8>, x2: Vec<u8>) -> Vec<u8> {
+pub fn merge_trees(x1: Vec<u8>, x2: Vec<u8>) -> Vec<Option<u8>> {
     // vec![x1[0] + x2[0], x1[0], x2[0], x1[1], x1[2], x2[1], x2[2]]
 
     assert!(!x1.is_empty() && !x2.is_empty());
 
     let mut v = vec![];
 
-    v.push(x1[0] + x2[0]);
+    v.push(Some(x1[0] + x2[0]));
 
     let mut idx = 0;
     let mut tree_width = 1;
 
-    // TODO fix for different lengths of x1 and x2
-    while let (Some(x1s), Some(x2s)) =
-        (x1.get(idx..idx + tree_width), x2.get(idx..idx + tree_width))
-    {
-        // add children nodes
-        v.extend(x1s);
-        v.extend(x2s);
+    loop {
+        match (x1.get(idx..idx + tree_width), x2.get(idx..idx + tree_width)) {
+            // TODO deduplicate and improve this code
+            (Some(left), Some(right)) => {
+                v.extend(left.iter().copied().map(Some));
+                v.extend(right.iter().copied().map(Some));
+            }
+            (None, Some(right)) => {
+                v.extend(std::iter::repeat(None).take(tree_width));
+                v.extend(right.iter().copied().map(Some));
+            }
+            (Some(left), None) => {
+                v.extend(left.iter().copied().map(Some));
+                v.extend(std::iter::repeat(None).take(tree_width));
+            }
+            (None, None) => break,
+        }
+
         idx += tree_width;
         tree_width *= 2;
     }
 
     v
+}
+
+pub fn print_bt(x: &[Option<u8>]) {
+    for &x in x {
+        if let Some(x) = x {
+            print!("{x}, ");
+        } else {
+            print!("[X], ");
+        }
+    }
+    println!();
 }
 
 fn main() {
@@ -126,9 +148,11 @@ fn main() {
 
     // println!("{freqs:?}");
 
-    let x1 = vec![6, 2, 4];
+    // let x1 = vec![6, 2, 4];
+    // let x2 = vec![9, 5, 4];
+    let x1 = vec![6];
     let x2 = vec![9, 5, 4];
 
     let x3 = merge_trees(x1, x2);
-    dbg!(x3);
+    print_bt(&x3);
 }
