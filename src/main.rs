@@ -84,8 +84,6 @@ pub fn build_min_heap(x: &mut [u8]) {
 
 // merge nodes into new binary tree (complete BT for now)
 pub fn merge_trees(x1: Vec<u8>, x2: Vec<u8>) -> Vec<Option<u8>> {
-    // vec![x1[0] + x2[0], x1[0], x2[0], x1[1], x1[2], x2[1], x2[2]]
-
     assert!(!x1.is_empty() && !x2.is_empty());
 
     let mut v = vec![];
@@ -97,20 +95,17 @@ pub fn merge_trees(x1: Vec<u8>, x2: Vec<u8>) -> Vec<Option<u8>> {
 
     loop {
         match (x1.get(idx..idx + tree_width), x2.get(idx..idx + tree_width)) {
-            // TODO deduplicate and improve this code
-            (Some(left), Some(right)) => {
-                v.extend(left.iter().copied().map(Some));
-                v.extend(right.iter().copied().map(Some));
-            }
-            (None, Some(right)) => {
-                v.extend(std::iter::repeat(None).take(tree_width));
-                v.extend(right.iter().copied().map(Some));
-            }
-            (Some(left), None) => {
-                v.extend(left.iter().copied().map(Some));
-                v.extend(std::iter::repeat(None).take(tree_width));
-            }
             (None, None) => break,
+            (l, r) => {
+                let lr = [l, r];
+                for x in lr {
+                    if let Some(x) = x {
+                        v.extend(x.iter().copied().map(Some));
+                    } else {
+                        v.extend(std::iter::repeat(None).take(tree_width));
+                    }
+                }
+            }
         }
 
         idx += tree_width;
