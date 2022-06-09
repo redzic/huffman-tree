@@ -17,3 +17,6 @@ print(s)
 
 # harder case
 # BBBBBBEEEDAAAAAAAAAACCCDD
+
+# harder case #2
+# abcbdbeabcdb
