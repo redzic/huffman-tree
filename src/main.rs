@@ -66,15 +66,10 @@ pub fn build_min_heap(x: &mut [BinaryHeap]) {
 }
 
 pub fn move_node_min_heap(mut node_idx: usize, tree: &mut [BinaryHeap]) {
+    let node = tree[node_idx].tree[0];
     while node_idx != 0 {
-        // TODO see if we can cache this value.
-        // We move this node up the tree, but we don't need to load from memory
-        // each time we move it up.
-        // Easiest way to do this would probably to be add some function to
-        // BinaryHeap that gets the root node.
-        let node = &tree[node_idx];
         // get value of parent node
-        let p_node = &tree[(node_idx - 1) / 2];
+        let p_node = tree[(node_idx - 1) / 2].tree[0];
         if p_node > node {
             // swap current node with parent node
             tree.swap(node_idx, (node_idx - 1) / 2);
@@ -197,7 +192,6 @@ macro_rules! create_freqs {
 
 #[derive(Debug, Clone)]
 pub struct BinaryHeap {
-    // TODO use NonzeroUsize instead
     tree: Vec<Option<NonZeroUsize>>,
 }
 
