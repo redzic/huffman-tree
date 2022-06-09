@@ -59,7 +59,7 @@ pub fn pop_front_min_heap<T: PartialOrd + Clone + Ord>(x: &mut [T]) -> Option<T>
         }
     }
 
-    Some(ret.clone())
+    Some(ret)
 }
 
 // build min heap in-place
@@ -129,14 +129,14 @@ pub fn merge_trees<T: Copy + PartialEq + Add<Output = T>>(
             }
 
             // left side of tree is copied, right side is none
-            let mut twidth = 2;
+            let mut tree_width = 2;
             let mut idx = 1;
-            while let Some(row) = tree.get(idx..idx + twidth) {
+            while let Some(row) = tree.get(idx..idx + tree_width) {
                 ntree.extend(row);
-                ntree.extend(std::iter::repeat(None).take(twidth));
+                ntree.extend(std::iter::repeat(None).take(tree_width));
 
-                idx += twidth;
-                twidth *= 2;
+                idx += tree_width;
+                tree_width *= 2;
             }
 
             return ntree;
@@ -261,6 +261,45 @@ fn main() {
     }
 
     print_bt(&freqs[0].tree);
+
+    let mut idx = 0;
+    let mut tree_width = 1;
+
+    fn code_length(x: usize) -> u32 {
+        (usize::BITS - ((x + 1).leading_zeros())) - 1
+    }
+
+    while idx + tree_width <= freqs[0].tree.len() {
+        for i in 0..tree_width {
+            // check if current node is a leaf node,
+            // based on whether a child node exists and has a value.
+            let is_leaf_node = match freqs[0].tree.get(2 * (idx + i) + 1) {
+                None | Some(&None) => true,
+                _ => false,
+            };
+            if is_leaf_node && freqs[0].tree[idx + i].is_some() {
+                // get length of code
+
+                let length = code_length(idx + i);
+                let mut period_log2 = length - 1;
+                print!("{}: ", freqs[0].tree[idx + i].unwrap());
+                for _ in 0..length {
+                    // TODO use and instead of modulus
+                    // kind of wonder if compiler can actually simplify this shit
+
+                    print!("{}", (i >> period_log2) & 1);
+
+                    period_log2 -= 1;
+                }
+                println!();
+            } else {
+                // println!("not a leaf node");
+            }
+        }
+
+        idx += tree_width;
+        tree_width *= 2;
+    }
 
     // TODO check if this is necessary or not?
     // merge last root node
