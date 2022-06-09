@@ -1,6 +1,7 @@
 use std::{
     cmp::{Ord, PartialOrd},
     fmt::Debug,
+    num::NonZeroUsize,
 };
 
 pub fn pop_front_min_heap(x: &mut [BinaryHeap]) -> Option<BinaryHeap> {
@@ -90,10 +91,10 @@ pub fn move_node_min_heap(mut node_idx: usize, tree: &mut [BinaryHeap]) {
 
 pub fn merge_trees(
     // this vec can be empty
-    tree: Vec<Option<usize>>,
+    tree: Vec<Option<NonZeroUsize>>,
     // this can cannot be empty
-    nnode: Vec<Option<usize>>,
-) -> Vec<Option<usize>> {
+    nnode: Vec<Option<NonZeroUsize>>,
+) -> Vec<Option<NonZeroUsize>> {
     // can be empty, or have just one node
     if tree.is_empty() {
         return nnode;
@@ -137,7 +138,11 @@ pub fn merge_trees(
         }
     }
 
-    let mut v = vec![Some(tree[0].unwrap() + nnode[0].unwrap())];
+    let mut v = unsafe {
+        vec![Some(NonZeroUsize::new_unchecked(
+            tree[0].unwrap().get() + nnode[0].unwrap().get(),
+        ))]
+    };
 
     let mut idx = 0;
     let mut tree_width = 1;
@@ -168,7 +173,7 @@ pub fn merge_trees(
     v
 }
 
-pub fn print_bt(x: &[Option<usize>]) {
+pub fn print_bt(x: &[Option<NonZeroUsize>]) {
     for &x in x {
         if let Some(x) = x {
             print!("{x}, ");
@@ -193,13 +198,13 @@ macro_rules! create_freqs {
 #[derive(Debug, Clone)]
 pub struct BinaryHeap {
     // TODO use NonzeroUsize instead
-    tree: Vec<Option<usize>>,
+    tree: Vec<Option<NonZeroUsize>>,
 }
 
 impl BinaryHeap {
     fn root(x: usize) -> Self {
         Self {
-            tree: vec![Some(x)],
+            tree: vec![NonZeroUsize::new(x)],
         }
     }
 }
