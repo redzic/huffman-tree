@@ -94,7 +94,7 @@ pub fn move_node_min_heap<T: Clone + PartialOrd>(mut node_idx: usize, tree: &mut
 // function needed for merging nodes
 
 // merge nodes into new binary tree (complete BT for now)
-pub fn merge_trees<T: Copy + Debug + Display + PartialEq + Add<Output = T>>(
+pub fn merge_trees<T: Copy + PartialEq + Add<Output = T>>(
     // this vec can be empty
     tree: Vec<Option<T>>,
     // this can cannot be empty
@@ -198,6 +198,7 @@ macro_rules! create_freqs {
 
 #[derive(Debug, Clone)]
 pub struct BinaryHeap {
+    // TODO use NonzeroUsize instead
     tree: Vec<Option<usize>>,
 }
 
@@ -233,7 +234,7 @@ impl Ord for BinaryHeap {
 fn main() {
     // frequency map
     // each element is a binary tree
-    let mut freqs = create_freqs![1, 1, 1, 1, 1];
+    let mut freqs = create_freqs![1, 2, 3, 4];
 
     build_min_heap(&mut freqs);
 
