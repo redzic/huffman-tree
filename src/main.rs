@@ -9,10 +9,6 @@ pub fn pop_front_min_heap<T: PartialOrd + Clone + Ord>(x: &mut [T]) -> Option<T>
         return None;
     }
 
-    if x.len() == 1 {
-        return Some(x[0].clone());
-    }
-
     let ret = x[0].clone();
 
     // swap last node and root node
@@ -234,30 +230,24 @@ impl Ord for BinaryHeap {
 fn main() {
     // frequency map
     // each element is a binary tree
-    let mut freqs = create_freqs![1, 2, 3, 4];
+    let mut freqs = create_freqs![1, 1];
 
     build_min_heap(&mut freqs);
 
-    // TODO use simple stack
-    let mut two_nodes = vec![];
-
     let mut idx = freqs.len();
 
-    while let Some(node) = pop_front_min_heap(&mut freqs[..idx]) {
+    while idx != 1 {
+        let node1 = pop_front_min_heap(&mut freqs[..idx]).unwrap();
+        idx -= 1;
+        let node2 = pop_front_min_heap(&mut freqs[..idx]).unwrap();
         idx -= 1;
 
-        two_nodes.push(node);
+        freqs[idx] = BinaryHeap {
+            tree: merge_trees(node1.tree, node2.tree),
+        };
+        move_node_min_heap(idx, &mut freqs);
 
-        if two_nodes.len() == 2 {
-            // insert root into freqs min heap
-            let node1 = two_nodes.pop().unwrap();
-            let node2 = two_nodes.pop().unwrap();
-            freqs[idx] = BinaryHeap {
-                tree: merge_trees(node1.tree, node2.tree),
-            };
-            move_node_min_heap(idx, &mut freqs);
-            idx += 1;
-        }
+        idx += 1;
     }
 
     print_bt(&freqs[0].tree);
@@ -297,10 +287,4 @@ fn main() {
         idx += tree_width;
         tree_width *= 2;
     }
-
-    // TODO check if this is necessary or not?
-    // merge last root node
-    // if let Some(&last_node) = two_nodes.get(0) {
-    //     huffman_tree = merge_trees(huffman_tree, vec![Some(last_node)]);
-    // }
 }
