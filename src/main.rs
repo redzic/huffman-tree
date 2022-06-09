@@ -273,16 +273,20 @@ fn main() {
         for i in 0..tree_width {
             // check if current node is a leaf node,
             // based on whether a child node exists and has a value.
-            let is_leaf_node = match freqs[0].tree.get(2 * (idx + i) + 1) {
-                None | Some(&None) => true,
-                _ => false,
+            let leaf_node = if let Some(Some(node)) = freqs[0].tree.get(idx + i) {
+                match freqs[0].tree.get(2 * (idx + i) + 1) {
+                    None | Some(&None) => Some(*node),
+                    _ => None,
+                }
+            } else {
+                None
             };
-            if is_leaf_node && freqs[0].tree[idx + i].is_some() {
+            if let Some(leaf_node) = leaf_node {
                 // get length of code
 
                 let length = code_length(idx + i);
                 let mut period_log2 = length - 1;
-                print!("{}: ", freqs[0].tree[idx + i].unwrap());
+                print!("{}: ", leaf_node);
                 for _ in 0..length {
                     // TODO use and instead of modulus
                     // kind of wonder if compiler can actually simplify this shit
