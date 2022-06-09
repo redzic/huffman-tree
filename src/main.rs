@@ -4,25 +4,25 @@ use std::{
     ops::Add,
 };
 
-pub fn pop_front_min_heap<T: PartialOrd + Copy + Ord>(x: &mut [T]) -> Option<T> {
+pub fn pop_front_min_heap<T: PartialOrd + Clone + Ord>(x: &mut [T]) -> Option<T> {
     if x.is_empty() {
         return None;
     }
 
     if x.len() == 1 {
-        return Some(x[0]);
+        return Some(x[0].clone());
     }
 
-    let ret = x[0];
+    let ret = x[0].clone();
 
     // swap last node and root node
-    let last = x[x.len() - 1];
+    let last = x[x.len() - 1].clone();
     x[0] = last;
 
     let mut idx = 0;
 
     loop {
-        let root_node = x[idx];
+        let root_node = &x[idx];
 
         // idx points to root node
 
@@ -31,7 +31,7 @@ pub fn pop_front_min_heap<T: PartialOrd + Copy + Ord>(x: &mut [T]) -> Option<T> 
         let c2 = x.get(2 * idx + 2);
 
         match (c1, c2) {
-            (Some(&left), Some(&right)) => {
+            (Some(left), Some(right)) => {
                 let min_child_idx = if left <= right { 1 } else { 2 };
 
                 let min = *[left, right, root_node].iter().min().unwrap();
@@ -46,7 +46,7 @@ pub fn pop_front_min_heap<T: PartialOrd + Copy + Ord>(x: &mut [T]) -> Option<T> 
                     break;
                 }
             }
-            (Some(&left), None) => {
+            (Some(left), None) => {
                 // compare last child node with parent node
                 // since this is a min heap, the parent node should always be less than
                 // or equal to its children
@@ -59,22 +59,26 @@ pub fn pop_front_min_heap<T: PartialOrd + Copy + Ord>(x: &mut [T]) -> Option<T> 
         }
     }
 
-    Some(ret)
+    Some(ret.clone())
 }
 
 // build min heap in-place
-pub fn build_min_heap<T: PartialOrd + Copy>(x: &mut [T]) {
+pub fn build_min_heap<T: PartialOrd + Clone>(x: &mut [T]) {
     for idx in 0..x.len() {
         move_node_min_heap(idx, x);
     }
 }
 
-pub fn move_node_min_heap<T: Copy + PartialOrd>(mut node_idx: usize, tree: &mut [T]) {
-    let node = tree[node_idx];
-
+pub fn move_node_min_heap<T: Clone + PartialOrd>(mut node_idx: usize, tree: &mut [T]) {
     while node_idx != 0 {
+        // TODO see if we can cache this value.
+        // We move this node up the tree, but we don't need to load from memory
+        // each time we move it up.
+        // Easiest way to do this would probably to be add some function to
+        // BinaryHeap that gets the root node.
+        let node = &tree[node_idx];
         // get value of parent node
-        let p_node = tree[(node_idx - 1) / 2];
+        let p_node = &tree[(node_idx - 1) / 2];
         if p_node > node {
             // swap current node with parent node
             tree.swap(node_idx, (node_idx - 1) / 2);
@@ -101,13 +105,7 @@ pub fn merge_trees<T: Copy + Debug + Display + PartialEq + Add<Output = T>>(
         return nnode;
     }
 
-    assert!(!tree.is_empty() && !nnode.is_empty());
-
-    println!("\nRECEIVED TREE:");
-    print_bt(&tree);
-    println!("RECEIVED NEW NODE:");
-    print_bt(&nnode);
-    println!();
+    debug_assert!(!tree.is_empty() && !nnode.is_empty());
 
     // has to have at least 2 nodes if not empty
 
@@ -187,91 +185,85 @@ pub fn print_bt<T: Display + Copy>(x: &[Option<T>]) {
     println!();
 }
 
-fn main() {
-    // sorted frequency map
-    // a, b, c, d, e, ... etc
-    // let mut freqs = [10, 6, 5, 1, 3];
-    // let mut freqs = [10, 6, 3, 3, 3];
-    let mut freqs = [1, 1, 1, 1];
+#[macro_export]
+macro_rules! create_freqs {
+    ($($x:expr),* $(,)?) => {
+        [
+        $(
+            BinaryHeap::root($x),
+        )*
+        ]
+    };
+}
 
-    // let mut freq_ptr = &mut freqs[..];
+#[derive(Debug, Clone)]
+pub struct BinaryHeap {
+    tree: Vec<Option<usize>>,
+}
+
+impl BinaryHeap {
+    fn root(x: usize) -> Self {
+        Self {
+            tree: vec![Some(x)],
+        }
+    }
+}
+
+impl PartialOrd for BinaryHeap {
+    // compare first element
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.tree[0].partial_cmp(&other.tree[0])
+    }
+}
+
+impl PartialEq for BinaryHeap {
+    fn eq(&self, other: &Self) -> bool {
+        self.tree[0] == other.tree[0]
+    }
+}
+
+impl Eq for BinaryHeap {}
+
+impl Ord for BinaryHeap {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.tree[0].cmp(&other.tree[0])
+    }
+}
+
+fn main() {
+    // frequency map
+    // each element is a binary tree
+    let mut freqs = create_freqs![1, 1, 1, 1, 1];
 
     build_min_heap(&mut freqs);
 
     // TODO use simple stack
     let mut two_nodes = vec![];
 
-    let mut huffman_tree = vec![];
-
     let mut idx = freqs.len();
 
     while let Some(node) = pop_front_min_heap(&mut freqs[..idx]) {
-        dbg!(node);
-
         idx -= 1;
-
-        // println!("{:?}", &freqs[..idx]);
 
         two_nodes.push(node);
 
         if two_nodes.len() == 2 {
-            let root = two_nodes[0] + two_nodes[1];
-            let new_node = vec![Some(root), Some(two_nodes[0]), Some(two_nodes[1])];
-            // when we merge the trees, we have to make sure that
-            // we're merging with the minimum node
-            // which might be at the root node in the tree
-
             // insert root into freqs min heap
-            freqs[idx] = root;
+            let node1 = two_nodes.pop().unwrap();
+            let node2 = two_nodes.pop().unwrap();
+            freqs[idx] = BinaryHeap {
+                tree: merge_trees(node1.tree, node2.tree),
+            };
             move_node_min_heap(idx, &mut freqs);
             idx += 1;
-
-            dbg!(&freqs[..idx]);
-
-            // freqs[idx - 1] = root;
-            // move_node_min_heap(idx, &mut freqs);
-
-            dbg!(&two_nodes);
-            huffman_tree = merge_trees(huffman_tree, new_node);
-
-            print_bt(&huffman_tree);
-
-            two_nodes.clear();
         }
-
-        // check if two_nodes length is 1 or 2 at the end
     }
 
+    print_bt(&freqs[0].tree);
+
+    // TODO check if this is necessary or not?
     // merge last root node
     // if let Some(&last_node) = two_nodes.get(0) {
     //     huffman_tree = merge_trees(huffman_tree, vec![Some(last_node)]);
-    // }
-
-    print_bt(&huffman_tree);
-
-    // let mut y = &mut freqs[..];
-    // while let Some(x) = pop_front_min_heap(y) {
-    //     dbg!(x);
-
-    //     let len = y.len();
-    //     y = &mut y[..len - 1];
-    // }
-
-    // println!("{freqs:?}");
-
-    // TODO fix really bad performance
-    // let new_vec = freqs.iter().map(|x| vec![*x]).collect::<Vec<_>>();
-
-    // let mut min_heap = vec![];
-
-    // let x1 = vec![6, 2, 4];
-    // let x1 = vec![Some(1), Some(2), Some(3), None, None, Some(4), Some(5)];
-    // let x2 = vec![9, 5, 4];
-
-    // {
-    //     // let x1 = x1.iter().copied().map(Some).collect();
-    //     let x2 = x2.iter().copied().map(Some).collect();
-    //     let x3 = merge_trees(x1, x2);
-    //     print_bt(&x3);
     // }
 }
