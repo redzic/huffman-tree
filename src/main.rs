@@ -283,21 +283,14 @@ fn main() {
             };
             if let Some(leaf_node) = leaf_node {
                 // get length of code
-
                 let length = code_length(idx + i);
                 let mut period_log2 = length - 1;
                 print!("{}: ", leaf_node);
                 for _ in 0..length {
-                    // TODO use and instead of modulus
-                    // kind of wonder if compiler can actually simplify this shit
-
                     print!("{}", (i >> period_log2) & 1);
-
                     period_log2 -= 1;
                 }
                 println!();
-            } else {
-                // println!("not a leaf node");
             }
         }
 
