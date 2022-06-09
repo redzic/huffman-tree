@@ -12,7 +12,7 @@ s += a * "A"
 s += c * "C"
 print(s)
 
-# simpler
+# simpler (this file)
 # BBBBBBEEEDAAAAAAAAAACCCCC
 
 # harder case
