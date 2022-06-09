@@ -1,10 +1,9 @@
 use std::{
     cmp::{Ord, PartialOrd},
-    fmt::{Debug, Display},
-    ops::Add,
+    fmt::Debug,
 };
 
-pub fn pop_front_min_heap<T: PartialOrd + Clone + Ord>(x: &mut [T]) -> Option<T> {
+pub fn pop_front_min_heap(x: &mut [BinaryHeap]) -> Option<BinaryHeap> {
     if x.is_empty() {
         return None;
     }
@@ -59,13 +58,13 @@ pub fn pop_front_min_heap<T: PartialOrd + Clone + Ord>(x: &mut [T]) -> Option<T>
 }
 
 // build min heap in-place
-pub fn build_min_heap<T: PartialOrd + Clone>(x: &mut [T]) {
+pub fn build_min_heap(x: &mut [BinaryHeap]) {
     for idx in 0..x.len() {
         move_node_min_heap(idx, x);
     }
 }
 
-pub fn move_node_min_heap<T: Clone + PartialOrd>(mut node_idx: usize, tree: &mut [T]) {
+pub fn move_node_min_heap(mut node_idx: usize, tree: &mut [BinaryHeap]) {
     while node_idx != 0 {
         // TODO see if we can cache this value.
         // We move this node up the tree, but we don't need to load from memory
@@ -89,13 +88,12 @@ pub fn move_node_min_heap<T: Clone + PartialOrd>(mut node_idx: usize, tree: &mut
 
 // function needed for merging nodes
 
-// merge nodes into new binary tree (complete BT for now)
-pub fn merge_trees<T: Copy + PartialEq + Add<Output = T>>(
+pub fn merge_trees(
     // this vec can be empty
-    tree: Vec<Option<T>>,
+    tree: Vec<Option<usize>>,
     // this can cannot be empty
-    nnode: Vec<Option<T>>,
-) -> Vec<Option<T>> {
+    nnode: Vec<Option<usize>>,
+) -> Vec<Option<usize>> {
     // can be empty, or have just one node
     if tree.is_empty() {
         return nnode;
@@ -170,7 +168,7 @@ pub fn merge_trees<T: Copy + PartialEq + Add<Output = T>>(
     v
 }
 
-pub fn print_bt<T: Display + Copy>(x: &[Option<T>]) {
+pub fn print_bt(x: &[Option<usize>]) {
     for &x in x {
         if let Some(x) = x {
             print!("{x}, ");
