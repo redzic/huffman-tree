@@ -4,8 +4,6 @@ use std::{
     num::NonZeroUsize,
 };
 
-use std::fs;
-
 pub fn pop_front_min_heap(x: &mut [BinaryHeap]) -> Option<BinaryHeap> {
     if x.is_empty() {
         return None;
@@ -108,11 +106,7 @@ pub fn merge_trees(
     if !tree.is_empty() && nnode.len() >= 3 && tree[0].is_some() {
         // TODO unfuck code
         if tree[0].unwrap() == nnode[1].unwrap() || tree[0].unwrap() == nnode[2].unwrap() {
-            let mut ntree = vec![];
-
-            ntree.push(nnode[0]);
-            ntree.push(tree[0]);
-            // ntree.push(nnode[2]);
+            let mut ntree = vec![nnode[0], tree[0]];
 
             if tree[0].unwrap() == nnode[1].unwrap() {
                 ntree.push(nnode[2]);
