@@ -4,6 +4,8 @@ use std::{
     num::NonZeroUsize,
 };
 
+use std::fs;
+
 pub fn pop_front_min_heap(x: &mut [BinaryHeap]) -> Option<BinaryHeap> {
     if x.is_empty() {
         return None;
@@ -224,10 +226,41 @@ impl Ord for BinaryHeap {
     }
 }
 
-fn main() {
+fn main() -> Result<(), std::io::Error> {
+    let args: Vec<String> = std::env::args().collect();
+
+    if args.len() != 2 {
+        eprintln!("usage: ./heap-rs <file>");
+        std::process::exit(1);
+    }
+
+    // TODO check how to display a more user-facing error message
+    let string = std::fs::read_to_string(&args[1])?;
+
+    // frequency map initialized to 0 for all characters
+    // (character, frequency)
+    let mut freq_map = vec![(0u8, 0usize); 256];
+
+    for (idx, (x, _)) in freq_map.iter_mut().enumerate() {
+        *x = idx as u8;
+    }
+
+    for c in string.as_bytes() {
+        freq_map[*c as usize].1 += 1;
+    }
+
+    freq_map.retain(|(_, freq)| *freq != 0);
+
+    println!("{freq_map:?}");
+
+    let mut freqs: Vec<BinaryHeap> = freq_map
+        .iter()
+        .map(|(_, freq)| BinaryHeap::root(*freq))
+        .collect();
+
     // frequency map
     // each element is a binary tree
-    let mut freqs = create_freqs![1, 1];
+    // let mut freqs = create_freqs![1, 2, 3, 4, 5, 6, 999];
 
     build_min_heap(&mut freqs);
 
@@ -247,7 +280,7 @@ fn main() {
         idx += 1;
     }
 
-    print_bt(&freqs[0].tree);
+    // print_bt(&freqs[0].tree);
 
     let mut idx = 0;
     let mut tree_width = 1;
@@ -272,10 +305,10 @@ fn main() {
                 // get length of code
                 let length = code_length(idx + i);
                 let mut period_log2 = length - 1;
-                print!("{}: ", leaf_node);
+                print!("{leaf_node:>4}:\t");
                 for _ in 0..length {
                     print!("{}", (i >> period_log2) & 1);
-                    period_log2 -= 1;
+                    period_log2 = period_log2.wrapping_sub(1);
                 }
                 println!();
             }
@@ -284,4 +317,6 @@ fn main() {
         idx += tree_width;
         tree_width *= 2;
     }
+
+    Ok(())
 }
