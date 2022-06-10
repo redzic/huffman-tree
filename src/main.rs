@@ -1,8 +1,11 @@
 use std::{
     cmp::{Ord, PartialOrd},
+    collections::HashMap,
     fmt::Debug,
     num::NonZeroUsize,
 };
+
+use bitvec::prelude::*;
 
 pub fn pop_front_min_heap(x: &mut [BinaryHeap]) -> Option<BinaryHeap> {
     if x.is_empty() {
@@ -220,6 +223,13 @@ impl Ord for BinaryHeap {
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct HuffmanCode {
+    // max code length is 32 bits
+    code: u32,
+    num_bits: u32,
+}
+
 fn main() -> Result<(), std::io::Error> {
     let args: Vec<String> = std::env::args().collect();
 
@@ -244,8 +254,6 @@ fn main() -> Result<(), std::io::Error> {
     }
 
     freq_map.retain(|(_, freq)| *freq != 0);
-
-    println!("{freq_map:?}");
 
     let mut freqs: Vec<BinaryHeap> = freq_map
         .iter()
@@ -274,15 +282,17 @@ fn main() -> Result<(), std::io::Error> {
         idx += 1;
     }
 
-    // print_bt(&freqs[0].tree);
-
-    let mut idx = 0;
-    let mut tree_width = 1;
-
     fn code_length(x: usize) -> u32 {
         (usize::BITS - ((x + 1).leading_zeros())) - 1
     }
 
+    let mut idx = 0;
+    let mut tree_width = 1;
+
+    // TODO maybe can just use simple lookup table for this
+    let mut huffman_table: HashMap<u8, HuffmanCode> = HashMap::new();
+
+    // TODO replace with less bad solution
     while idx + tree_width <= freqs[0].tree.len() {
         for i in 0..tree_width {
             // check if current node is a leaf node,
@@ -299,18 +309,47 @@ fn main() -> Result<(), std::io::Error> {
                 // get length of code
                 let length = code_length(idx + i);
                 let mut period_log2 = length - 1;
-                print!("{leaf_node:>4}:\t");
+                let mut code = 0;
+
+                // find character with the same frequency as leaf_node
+                let removal_index = freq_map
+                    .iter()
+                    .position(|(_k, v)| *v == leaf_node.get())
+                    .unwrap();
+                let (symbol, _) = freq_map.remove(removal_index);
+
                 for _ in 0..length {
-                    print!("{}", (i >> period_log2) & 1);
+                    code = code << 1 | (i as u32 >> period_log2) & 1;
+                    // result of subtraction from 0 is never read afterwards
                     period_log2 = period_log2.wrapping_sub(1);
                 }
-                println!();
+                huffman_table.insert(
+                    symbol,
+                    HuffmanCode {
+                        code,
+                        num_bits: length,
+                    },
+                );
             }
         }
 
         idx += tree_width;
         tree_width *= 2;
     }
+
+    // code the final thing
+
+    let mut output_vec: BitVec<usize, Lsb0> = BitVec::default();
+    for c in string.as_bytes() {
+        // lookup code from table
+        let huffman_code = huffman_table[c];
+        for i in 0..huffman_code.num_bits {
+            // TODO: perf-wise, this is probably extremely bad
+            output_vec.push((huffman_code.code >> i) & 1 != 0);
+        }
+    }
+
+    dbg!(output_vec.len() / 8);
 
     Ok(())
 }
