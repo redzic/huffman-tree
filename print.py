@@ -1,22 +1,3 @@
-a = 10
-b = 6
-c = 5
-d = 1
-e = 3
+bytes = [117, 115, 101, 32, 115, 116, 100, 58, 58, 123]
 
-s = ""
-s += b * "B"
-s += e * "E"
-s += d * "D"
-s += a * "A"
-s += c * "C"
-print(s)
-
-# simpler (this file)
-# BBBBBBEEEDAAAAAAAAAACCCCC
-
-# harder case
-# BBBBBBEEEDAAAAAAAAAACCCDD
-
-# harder case #2
-# abcbdbeabcdb
+print("".join(map(chr, bytes)))

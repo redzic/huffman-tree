@@ -229,13 +229,13 @@ pub struct HuffmanCode {
 }
 
 pub fn print_code(hc: HuffmanCode) {
-    for i in (0..hc.num_bits).rev() {
+    for i in 0..hc.num_bits {
         print!("{}", (hc.code >> i) & 1);
     }
     println!();
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub struct HuffmanEntry {
     // this value could be set to anything if is_leaf_node is false.
     // otherwise, it contains the character
@@ -243,19 +243,6 @@ pub struct HuffmanEntry {
 
     // specified whether the current node is a leaf node.
     is_leaf_node: bool,
-}
-
-// TODO somehow make this not O(n)?
-pub fn code_to_idx(hc: HuffmanCode) -> usize {
-    let mut idx = 0;
-
-    for i in 0..hc.num_bits {
-        let bit = (hc.code >> i) & 1;
-
-        idx = 2 * idx + bit as usize + 1;
-    }
-
-    idx
 }
 
 fn main() -> Result<(), std::io::Error> {
@@ -370,24 +357,6 @@ fn main() -> Result<(), std::io::Error> {
         tree_width *= 2;
     }
 
-    let mut decode_tree = vec![
-        HuffmanEntry {
-            is_leaf_node: false,
-            value: 0,
-        };
-        bt_len
-    ];
-
-    // insert data from huffman_table, which is used during encoding
-    for (&value, &hc) in &huffman_table {
-        let insertion_index = code_to_idx(hc);
-        println!("insertion:\t{insertion_index:>6}:  {}", value as char);
-        decode_tree[insertion_index as usize] = HuffmanEntry {
-            is_leaf_node: true,
-            value,
-        };
-    }
-
     // build tree used for decoding, only contains the values and not
     // the original frequency data.
 
@@ -405,40 +374,49 @@ fn main() -> Result<(), std::io::Error> {
         // lookup code from table
         let huffman_code = huffman_table[c];
         print!("{c}: ");
-
-        for i in (0..huffman_code.num_bits).rev() {
+        for i in 0..huffman_code.num_bits {
             // TODO: perf-wise, this is probably extremely bad
             coded_data.push((huffman_code.code >> i) & 1 != 0);
             print!("{}", (huffman_code.code >> i) & 1);
         }
-        println!();
-        dbg!(huffman_code.code);
-        // println!("{:?}\n", decode_tree[huffman_code.code as usize - 1]);
-        println!("{:?}\n", decode_tree[0b11]);
+        // println!();
+    }
+
+    let mut decode_tree = vec![
+        HuffmanEntry {
+            is_leaf_node: false,
+            value: 0,
+        };
+        bt_len
+    ];
+
+    // insert data from huffman_table, which is used during encoding
+    for (value, hc) in huffman_table {
+        let mut insertion_index = 0;
+
+        for i in 0..hc.num_bits {
+            insertion_index = 2 * insertion_index + ((hc.code >> i) & 1) + 1;
+        }
+        // dbg!(insertion_index);
+        decode_tree[insertion_index as usize] = HuffmanEntry {
+            is_leaf_node: true,
+            value,
+        };
     }
 
     // I think decoding table would be freqs[0]
 
     let mut decoded_buffer = vec![];
 
-    let mut z = HuffmanCode {
-        code: 0,
-        num_bits: 0,
-    };
+    let mut z: usize = 0;
     // try to decode the compressed text
     for bit in coded_data {
-        // z = 2 * z + bit as usize + 1;
-        z.code = (z.code << 1) | bit as u32;
-        z.num_bits += 1;
+        z = 2 * z + bit as usize + 1;
 
-        dbg!(z);
-        let entry = decode_tree[code_to_idx(z)];
+        let entry = decode_tree[z];
         if entry.is_leaf_node {
             decoded_buffer.push(entry.value);
-            z = HuffmanCode {
-                code: 0,
-                num_bits: 0,
-            };
+            z = 0;
 
             let s = std::str::from_utf8(&decoded_buffer);
             dbg!(s);
