@@ -359,9 +359,6 @@ fn main() -> Result<(), std::io::Error> {
                     num_bits: length,
                 };
 
-                // print!("{symbol}: ");
-                // print_code(hc);
-
                 huffman_table.insert(symbol, hc);
             }
         }
@@ -381,7 +378,6 @@ fn main() -> Result<(), std::io::Error> {
     // insert data from huffman_table, which is used during encoding
     for (&value, &hc) in &huffman_table {
         let insertion_index = code_to_idx(hc);
-        println!("insertion:\t{insertion_index:>6}:  {}", value as char);
         decode_tree[insertion_index as usize] = HuffmanEntry {
             is_leaf_node: true,
             value,
@@ -401,20 +397,14 @@ fn main() -> Result<(), std::io::Error> {
     // indexes instead of the array representation of binary tree.
 
     let mut coded_data: BitVec<usize, Lsb0> = BitVec::default();
-    for c in string.as_bytes().iter().take(10) {
+    for c in string.as_bytes() {
         // lookup code from table
         let huffman_code = huffman_table[c];
-        print!("{c}: ");
 
         for i in (0..huffman_code.num_bits).rev() {
             // TODO: perf-wise, this is probably extremely bad
             coded_data.push((huffman_code.code >> i) & 1 != 0);
-            print!("{}", (huffman_code.code >> i) & 1);
         }
-        println!();
-        dbg!(huffman_code.code);
-        // println!("{:?}\n", decode_tree[huffman_code.code as usize - 1]);
-        println!("{:?}\n", decode_tree[0b11]);
     }
 
     // I think decoding table would be freqs[0]
@@ -431,7 +421,6 @@ fn main() -> Result<(), std::io::Error> {
         z.code = (z.code << 1) | bit as u32;
         z.num_bits += 1;
 
-        dbg!(z);
         let entry = decode_tree[code_to_idx(z)];
         if entry.is_leaf_node {
             decoded_buffer.push(entry.value);
@@ -439,11 +428,11 @@ fn main() -> Result<(), std::io::Error> {
                 code: 0,
                 num_bits: 0,
             };
-
-            let s = std::str::from_utf8(&decoded_buffer);
-            dbg!(s);
         }
     }
+
+    let s = std::str::from_utf8(&decoded_buffer);
+    println!("{}", s.unwrap());
 
     // dbg!(output_vec.len() / 8);
 
